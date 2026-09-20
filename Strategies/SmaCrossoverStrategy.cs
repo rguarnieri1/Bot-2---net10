@@ -11,6 +11,7 @@ public class SmaCrossoverStrategy
     private readonly decimal _minVolumeRatio = 0.8m;              // Volume minimo richiesto rispetto alla media
     private readonly decimal _bodyStrengthThreshold = 0.5m;      // Corpo deve essere 50% della candela
     private readonly int _momentumLookback = 10;                 // Candele per il filtro momentum
+    private readonly int _crossoverLookback = 5;                 // Il cross deve essere avvenuto entro N candele, non solo sull'ultima
     private readonly decimal _rsiExtremeOverbought = 85m;
     private readonly decimal _rsiExtremeOversold = 15m;
 
@@ -43,8 +44,6 @@ public class SmaCrossoverStrategy
         var lastSmaFast = smaFast.Last();
         var lastSmaMedium = smaMedium.Last();
         var lastSmaSlow = smaSlow.Last();
-        var prevSmaFast = smaFast[smaFast.Count - 2];
-        var prevSmaMedium = smaMedium[smaMedium.Count - 2];
 
         result.Indicators["SMA10"] = lastSmaFast;
         result.Indicators["SMA20"] = lastSmaMedium;
@@ -65,19 +64,20 @@ public class SmaCrossoverStrategy
 
         result.Indicators["Trend"] = isUptrendAligned ? 1 : -1;
 
-        // 3️⃣ CROSSOVER FILTER - SMA10 deve aver appena incrociato SMA20 (Golden/Death Cross)
-        bool goldenCross = prevSmaFast <= prevSmaMedium && lastSmaFast > lastSmaMedium;
-        bool deathCross = prevSmaFast >= prevSmaMedium && lastSmaFast < lastSmaMedium;
+        // 3️⃣ CROSSOVER FILTER - SMA10 deve aver incrociato SMA20 entro le ultime _crossoverLookback candele
+        // (non solo sull'ultima: un trend appena confermato resta valido per qualche candela)
+        bool goldenCross = HasGoldenCrossWithin(smaFast, smaMedium, _crossoverLookback);
+        bool deathCross = HasDeathCrossWithin(smaFast, smaMedium, _crossoverLookback);
 
         if (isUptrendAligned && !goldenCross)
         {
-            result.Signal = "Rejected - No Golden Cross (SMA10/SMA20)";
+            result.Signal = $"Rejected - No Golden Cross in last {_crossoverLookback} candles (SMA10/SMA20)";
             return result;
         }
 
         if (isDowntrendAligned && !deathCross)
         {
-            result.Signal = "Rejected - No Death Cross (SMA10/SMA20)";
+            result.Signal = $"Rejected - No Death Cross in last {_crossoverLookback} candles (SMA10/SMA20)";
             return result;
         }
 
@@ -191,5 +191,40 @@ public class SmaCrossoverStrategy
         result.Indicators["SignalStrength"] = Math.Min(1m, bodyStrength + (recentVolume / avgVolume - 1) * 0.5m);
 
         return result;
+    }
+
+    // SMA con periodi diversi hanno lunghezze diverse (periodo più corto = lista più lunga):
+    // i loro elementi vanno allineati contando dalla fine (l'ultimo elemento di ciascuna
+    // corrisponde sempre alla stessa candela), mai per indice assoluto.
+    private static bool HasGoldenCrossWithin(List<decimal> smaFast, List<decimal> smaMedium, int lookback)
+    {
+        int maxOffset = Math.Min(lookback, Math.Min(smaFast.Count, smaMedium.Count) - 1);
+        for (int offset = 0; offset < maxOffset; offset++)
+        {
+            var fastCurr = smaFast[smaFast.Count - 1 - offset];
+            var fastPrev = smaFast[smaFast.Count - 2 - offset];
+            var medCurr = smaMedium[smaMedium.Count - 1 - offset];
+            var medPrev = smaMedium[smaMedium.Count - 2 - offset];
+
+            if (fastPrev <= medPrev && fastCurr > medCurr)
+                return true;
+        }
+        return false;
+    }
+
+    private static bool HasDeathCrossWithin(List<decimal> smaFast, List<decimal> smaMedium, int lookback)
+    {
+        int maxOffset = Math.Min(lookback, Math.Min(smaFast.Count, smaMedium.Count) - 1);
+        for (int offset = 0; offset < maxOffset; offset++)
+        {
+            var fastCurr = smaFast[smaFast.Count - 1 - offset];
+            var fastPrev = smaFast[smaFast.Count - 2 - offset];
+            var medCurr = smaMedium[smaMedium.Count - 1 - offset];
+            var medPrev = smaMedium[smaMedium.Count - 2 - offset];
+
+            if (fastPrev >= medPrev && fastCurr < medCurr)
+                return true;
+        }
+        return false;
     }
 }

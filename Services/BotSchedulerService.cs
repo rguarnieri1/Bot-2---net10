@@ -5,6 +5,7 @@ namespace BotCripto.Services;
 
 public class BotSchedulerService
 {
+    private const int CheckIntervalMinutes = 10;
     private readonly CryptoDataService _dataService;
     private readonly NotificationService _notificationService;
     private readonly ReportingService _reportingService;
@@ -49,17 +50,17 @@ public class BotSchedulerService
 
         _isRunning = true;
         Console.WriteLine("\n🤖 Bot Cripto avviato!");
-        Console.WriteLine("📊 Monitoraggio ogni 60 minuti...\n");
+        Console.WriteLine($"📊 Monitoraggio ogni {CheckIntervalMinutes} minuti...\n");
 
         // Esegui il primo controllo immediatamente
         await CheckMarketAsync();
 
-        // Timer per il controllo ogni 60 minuti
+        // Timer per il controllo ogni CheckIntervalMinutes minuti
         _marketCheckTimer = new Timer(
             async _ => await CheckMarketAsync(),
             null,
-            TimeSpan.FromMinutes(60),
-            TimeSpan.FromMinutes(60));
+            TimeSpan.FromMinutes(CheckIntervalMinutes),
+            TimeSpan.FromMinutes(CheckIntervalMinutes));
 
         // Timer per il report settimanale (ogni lunedì alle 00:00)
         var now = DateTime.UtcNow;

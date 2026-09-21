@@ -22,7 +22,7 @@ else
 
 async Task RunLiveAsync()
 {
-    var scheduler = new BotSchedulerService(initialCapital: 150m);
+    var scheduler = new BotSchedulerService(initialCapital: 1000m);
 
     Console.WriteLine("Strategia Principale Attiva:");
     Console.WriteLine("  ⭐ SMA Strategy (Simple Moving Average) + Candle Confirmation");
@@ -30,11 +30,11 @@ async Task RunLiveAsync()
     Console.WriteLine("     • Configurazione: SMA 10, 20, 50");
     Console.WriteLine("     • Filtri: Volume, Momentum, Candle Body, RSI, Golden/Death Cross");
     Console.WriteLine("\nImpostazioni:");
-    Console.WriteLine("  • Capitale Iniziale: €150.00");
+    Console.WriteLine("  • Capitale Iniziale: €1000.00");
     Console.WriteLine("  • Intervallo Monitoraggio: 60 minuti");
     Console.WriteLine("  • Max Crypto: 500");
-    Console.WriteLine("  • Risk per Trade: 1% (€1.50)");
-    Console.WriteLine("  • Max Position Size: 10% (€15.00)");
+    Console.WriteLine("  • Risk per Trade: 2% (€20.00)");
+    Console.WriteLine("  • Max Position Size: 10% (€100.00)");
     Console.WriteLine("  • Report Settimanale: Lunedì 00:00");
     Console.WriteLine("  • Notifiche Desktop: Abilitate");
     Console.WriteLine("  • Tracking Metriche: Ogni 10 cicli");

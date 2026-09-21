@@ -74,7 +74,7 @@ public class BotSchedulerService
             timeUntilMonday,
             TimeSpan.FromDays(7));
 
-        Console.WriteLine($"⏰ Prossimo report settimanale: {nextMonday:yyyy-MM-dd HH:mm:ss}");
+        Console.WriteLine($"⏰ Prossimo report settimanale: {nextMonday:yyyy-MM-dd HH:mm:ss} UTC");
 
         await Task.Delay(-1);
     }
@@ -95,7 +95,7 @@ public class BotSchedulerService
         try
         {
             _checksPerformed++;
-            Console.WriteLine($"\n⏱️  Ciclo #{_checksPerformed} - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"\n⏱️  Ciclo #{_checksPerformed} - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
 
             // Recupera tutte le criptovalute
             var cryptos = await _dataService.GetLargeCapCryptocurrenciesAsync();
